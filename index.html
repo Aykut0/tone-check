@@ -1,0 +1,1056 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#ff6a3d">
+<title>Tone Check</title>
+<style>
+:root{
+  --bg:#fff7ee; --card:#ffffff; --ink:#23262c; --muted:#6c7079; --line:#f1e3cf;
+  --coral:#ff5f45; --coral-2:#ffe4dc; --teal:#00a59d; --teal-2:#d4f5f1; --sun:#f2a100; --sun-2:#fff1c9;
+  --violet:#7657f6; --violet-2:#ece6ff; --grey:#8b909a; --grey-2:#eff1f4;
+  --green:#169c57; --green-2:#dcf6e7; --red:#e2474c; --red-2:#fde4e4;
+  --r:18px; --sh:0 1px 2px rgba(90,50,10,.05),0 8px 24px rgba(90,50,10,.07);
+  color-scheme:light;
+}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.5 system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif}
+.hero{background:linear-gradient(120deg,#ff5f45 0%,#ff8a3d 55%,#ffc23d 100%);color:#fff;padding:calc(18px + env(safe-area-inset-top)) 16px 30px}
+.hero-in{max-width:1040px;margin:0 auto;display:flex;align-items:center;justify-content:space-between;gap:12px}
+.brand{display:flex;align-items:center;gap:12px;min-width:0}
+.logo{width:46px;height:46px;flex:none}
+h1{margin:0;font-size:26px;letter-spacing:-.01em;line-height:1.1}
+.hero p{margin:3px 0 0;opacity:.95;font-size:14.5px}
+.mic-chip{font-weight:650;font-size:13px;padding:6px 12px;border-radius:99px;background:rgba(255,255,255,.25);white-space:nowrap}
+.mic-chip.on{background:#fff;color:var(--green)}
+.tabs{position:sticky;top:6px;z-index:5;display:flex;gap:6px;max-width:1008px;margin:-20px auto 0;padding:6px;background:#fff;border-radius:16px;box-shadow:var(--sh);width:calc(100% - 32px)}
+.tabs button{flex:1;min-height:44px;border:0;border-radius:11px;background:transparent;font:inherit;font-weight:650;font-size:15px;color:var(--muted);cursor:pointer;padding:0 6px}
+.tabs button[aria-selected="true"]{background:var(--coral);color:#fff}
+.wrap{max-width:1040px;margin:0 auto;padding:16px 16px calc(40px + env(safe-area-inset-bottom));display:grid;gap:16px}
+.tab{display:grid;gap:16px;min-width:0}
+.tab[hidden]{display:none}
+.card{background:var(--card);border:1px solid var(--line);border-radius:var(--r);box-shadow:var(--sh);padding:16px;min-width:0}
+h2{margin:0;font-size:19px;line-height:1.25}
+h3{margin:0;font-size:16.5px;line-height:1.25}
+p{margin:6px 0 0}
+.muted{color:var(--muted)}
+small{font-size:13px}
+.row-h{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:44px;padding:0 16px;border-radius:12px;border:0;font:inherit;font-weight:650;cursor:pointer;text-decoration:none;color:var(--ink);background:var(--grey-2)}
+.btn.primary{background:var(--coral);color:#fff}
+.btn.teal{background:var(--teal);color:#fff}
+.btn.big{min-height:54px;font-size:17px;padding:0 22px;margin-top:12px;width:100%}
+.btn.ghost{background:#fff;border:1.5px solid var(--line)}
+.btn.small{min-height:38px;padding:0 12px;font-size:14px}
+.btn.danger{color:var(--red)}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+.btn:not(:disabled):hover{filter:brightness(.97)}
+:focus-visible{outline:3px solid #ffa58c;outline-offset:2px}
+.link{background:none;border:0;padding:6px 0;font:inherit;font-size:14px;color:var(--teal);font-weight:650;cursor:pointer}
+.link.danger{color:var(--red)}
+.warn{color:#9a4a00;background:var(--sun-2);border-radius:10px;padding:8px 10px;font-size:14px}
+.warnbox{background:var(--sun-2);border:1px solid #f6d77f;border-radius:14px;padding:12px 14px;margin-top:10px}
+.warnbox p{margin:4px 0 0;font-size:14.5px}
+/* mic card */
+.flags{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px}
+.flag{font-size:13px;font-weight:650;padding:4px 10px;border-radius:99px;background:var(--grey-2);color:var(--muted)}
+.flag.ok{background:var(--green-2);color:var(--green)}
+.flag.bad{background:var(--red-2);color:var(--red)}
+.flag.warn{background:var(--sun-2);color:#9a5a00;padding:4px 10px}
+.inline{display:flex;align-items:center;gap:8px;margin-top:10px;font-size:14px;color:var(--muted)}
+.tips{margin:10px 0 0;padding-left:18px;color:var(--muted);font-size:14.5px}
+/* bench */
+details.card>summary{list-style:none;cursor:pointer;display:flex;align-items:center;justify-content:space-between;gap:10px}
+details.card>summary::-webkit-details-marker{display:none}
+details.card>summary::after{content:"";width:10px;height:10px;border-right:2.5px solid var(--muted);border-bottom:2.5px solid var(--muted);transform:rotate(45deg);margin-right:6px;transition:transform .15s}
+details[open].card>summary::after{transform:rotate(-135deg)}
+.sumtxt{display:grid;gap:2px}
+.grid-form{display:grid;grid-template-columns:repeat(auto-fill,minmax(145px,1fr));gap:12px;margin-top:14px}
+label.f{display:grid;gap:4px;font-size:13.5px;font-weight:600;color:var(--muted)}
+input,select,textarea{font:inherit;font-size:16px;color:var(--ink);background:#fffdf9;border:1.5px solid var(--line);border-radius:11px;padding:9px 11px;min-height:44px;width:100%}
+textarea{resize:vertical;min-height:96px;line-height:1.45}
+label.notes{margin-top:12px}
+/* set list */
+.setlist{list-style:none;margin:12px 0 0;padding:0;display:grid;gap:8px}
+.set-item{width:100%;display:grid;grid-template-columns:34px minmax(0,1fr) auto auto;align-items:center;gap:10px;text-align:left;background:#fffdf9;border:1.5px solid var(--line);border-radius:14px;padding:10px 12px;font:inherit;color:inherit;cursor:pointer}
+.set-item.on{border-color:var(--coral);background:#fff6f2}
+.set-n{width:30px;height:30px;border-radius:50%;display:grid;place-items:center;background:var(--coral-2);color:var(--coral);font-weight:750;font-size:14px}
+.set-t{display:grid;min-width:0}
+.set-t b{font-weight:650;overflow-wrap:anywhere}
+.set-t small{color:var(--muted)}
+.dots{display:flex;gap:4px}
+.dot{width:12px;height:12px;border-radius:50%;border:2px solid var(--kc);background:transparent}
+.dot.on{background:var(--kc)}
+.pill{font-size:12.5px;font-weight:700;padding:4px 10px;border-radius:99px;white-space:nowrap;background:var(--grey-2);color:var(--muted)}
+.pill.big{font-size:14px;padding:6px 14px}
+.pill.pass{background:var(--green-2);color:var(--green)}
+.pill.fail{background:var(--red-2);color:var(--red)}
+.pill.prog{background:var(--sun-2);color:#9a5a00}
+@media (max-width:460px){.set-item{grid-template-columns:30px minmax(0,1fr) auto}.set-item .dots{display:none}}
+/* kinds */
+.k-off{--kc:var(--grey);--kc2:var(--grey-2)}
+.k-tone{--kc:var(--coral);--kc2:var(--coral-2)}
+.k-cap{--kc:var(--sun);--kc2:var(--sun-2)}
+.k-moved{--kc:var(--teal);--kc2:var(--teal-2)}
+.k-sweep{--kc:var(--violet);--kc2:var(--violet-2)}
+/* set view */
+.sv-head{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;flex-wrap:wrap}
+.eyebrow{font-size:12.5px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--coral)}
+.takes{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:12px;margin-top:14px}
+.take{border:1.5px solid var(--line);border-top:5px solid var(--kc);border-radius:16px;padding:12px 14px;background:#fff;display:grid;gap:8px;align-content:start;min-width:0}
+.take-h{display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:10px;align-items:center}
+.swatch{width:30px;height:30px;border-radius:10px;background:var(--kc2);display:grid;place-items:center}
+.swatch::after{content:"";width:11px;height:11px;border-radius:50%;background:var(--kc)}
+.take-h small{color:var(--muted)}
+.st{font-size:12.5px;font-weight:700;padding:3px 9px;border-radius:99px;white-space:nowrap}
+.st.todo{background:var(--grey-2);color:var(--muted)}
+.st.done{background:var(--green-2);color:var(--green)}
+.how{margin:0;font-size:14.5px;background:var(--kc2);border-radius:10px;padding:8px 10px}
+.take-act{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.take-act select{width:auto;min-height:44px}
+.btn.rec{background:var(--kc);color:#fff}
+.rec-dot{width:12px;height:12px;border-radius:50%;background:#fff}
+.file{position:relative;overflow:hidden}
+.file input{position:absolute;inset:0;opacity:0;cursor:pointer;min-height:0}
+.res{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px}
+.metric{background:#fffaf4;border:1px solid var(--line);border-radius:10px;padding:6px 8px;display:grid;min-width:0}
+.metric span{font-size:11.5px;color:var(--muted);line-height:1.25}
+.metric b{font-size:16px;font-variant-numeric:tabular-nums;white-space:nowrap}
+.metric b small{font-size:11.5px;font-weight:600;color:var(--muted)}
+.res .chart{grid-column:1/-1}
+.take-links{display:flex;gap:16px}
+canvas.chart{width:100%;height:150px;display:block;background:#fffdf9;border:1px solid var(--line);border-radius:12px}
+canvas.chart.mini{height:110px}
+canvas.chart.tall{height:300px;margin-top:12px}
+.verdict-box{margin-top:14px;border-radius:16px;padding:14px;background:#fffaf4;border:1.5px dashed var(--line)}
+.checks{list-style:none;margin:8px 0 0;padding:0;display:grid;gap:6px}
+.checks li{display:grid;grid-template-columns:26px minmax(0,1fr);gap:8px;align-items:start}
+.ck{width:24px;height:24px;border-radius:50%;display:grid;place-items:center;font-weight:800;font-size:13px;color:#fff}
+.ck.ok{background:var(--green)}
+.ck.no{background:var(--red)}
+.ck.info{background:var(--grey)}
+.checks b{display:block;font-weight:650}
+.checks span.d{font-size:13.5px;color:var(--muted)}
+.checks.compact li{grid-template-columns:22px minmax(0,1fr)}
+.checks.compact .ck{width:20px;height:20px;font-size:11px}
+.legend{display:flex;flex-wrap:wrap;gap:10px;margin-top:8px;font-size:13px;color:var(--muted)}
+.legend span{display:inline-flex;align-items:center;gap:6px}
+.legend i{width:14px;height:4px;border-radius:2px;background:var(--kc)}
+.sv-foot{margin-top:12px;display:flex;justify-content:flex-end}
+/* live */
+.seg-ctl{display:inline-flex;background:var(--grey-2);border-radius:11px;padding:3px}
+.seg-ctl button{border:0;background:transparent;font:inherit;font-size:14px;font-weight:650;color:var(--muted);padding:6px 12px;border-radius:9px;min-height:36px;cursor:pointer}
+.seg-ctl button.on{background:#fff;color:var(--ink);box-shadow:0 1px 3px rgba(0,0,0,.08)}
+.readouts{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:8px;margin-top:12px}
+.ro{background:var(--teal-2);border-radius:12px;padding:8px 12px;display:grid}
+.ro:nth-child(2){background:var(--coral-2)}
+.ro:nth-child(3){background:var(--sun-2)}
+.ro-l{font-size:12.5px;color:var(--muted);font-weight:600}
+.ro-v{font-size:20px;font-weight:750;font-variant-numeric:tabular-nums}
+.row-btns{display:flex;gap:12px;align-items:center;flex-wrap:wrap;margin-top:10px}
+.toggle{display:inline-flex;align-items:center;gap:8px;font-weight:600;font-size:15px;cursor:pointer}
+.toggle input{width:20px;height:20px;min-height:0;accent-color:var(--coral)}
+/* results */
+.tablewrap{overflow-x:auto;margin-top:10px}
+table.rt{border-collapse:collapse;width:100%;font-size:14px;font-variant-numeric:tabular-nums}
+.rt th{text-align:left;font-size:11.5px;letter-spacing:.04em;text-transform:uppercase;color:var(--muted);font-weight:700;padding:6px 6px;border-bottom:1.5px solid var(--line)}
+.rt td{padding:8px 6px;border-bottom:1px solid var(--line);white-space:nowrap}
+.rt td[colspan]{white-space:normal}
+.rt tr:last-child td{border-bottom:0}
+.tdot{display:inline-block;width:10px;height:10px;border-radius:50%;background:var(--kc);margin-right:8px}
+.exp-btns{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
+.saved{font-size:13px;color:var(--muted);text-align:center}
+.saved b{color:var(--green)}
+/* overlay */
+.overlay{position:fixed;inset:0;z-index:20;background:rgba(255,247,238,.94);display:grid;place-items:center;padding:16px;-webkit-backdrop-filter:blur(4px);backdrop-filter:blur(4px)}
+.overlay[hidden]{display:none}
+.ov-card{width:min(440px,100%);background:#fff;border-radius:24px;box-shadow:var(--sh);border-top:8px solid var(--kc);padding:18px 18px 16px;display:grid;gap:10px;text-align:center}
+.ov-kind{font-size:13px;font-weight:700;color:var(--muted)}
+.ov-card h2{font-size:24px;color:var(--kc)}
+.ring{position:relative;width:190px;height:190px;margin:4px auto}
+.ring svg{width:100%;height:100%;transform:rotate(-90deg)}
+.ring-bg{fill:none;stroke:var(--kc2);stroke-width:10}
+.ring-fg{fill:none;stroke:var(--kc);stroke-width:10;stroke-linecap:round;transition:stroke-dashoffset .12s linear}
+.ring-txt{position:absolute;inset:0;display:grid;place-content:center;gap:2px}
+#ovBig{font-size:44px;font-weight:800;font-variant-numeric:tabular-nums;line-height:1}
+#ovSmall{font-size:14px;color:var(--muted);font-weight:650}
+.meter{height:10px;background:var(--grey-2);border-radius:99px;overflow:hidden;margin-top:6px}
+.meter span{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--teal),var(--sun),var(--coral));border-radius:99px}
+#ovPeak{font-size:14px;font-weight:650;font-variant-numeric:tabular-nums}
+/* dialog + toast */
+dialog{border:0;border-radius:22px;padding:0;box-shadow:0 20px 60px rgba(80,40,10,.25);width:min(420px,calc(100% - 32px))}
+dialog::backdrop{background:rgba(60,30,10,.25)}
+.dlg{padding:18px;display:grid;gap:12px}
+.dlg-btns{display:flex;justify-content:flex-end;gap:8px}
+.toast{position:fixed;left:50%;bottom:calc(18px + env(safe-area-inset-bottom));transform:translate(-50%,30px);opacity:0;background:var(--ink);color:#fff;font-weight:600;font-size:14.5px;padding:10px 16px;border-radius:12px;transition:all .2s;pointer-events:none;z-index:30;max-width:calc(100% - 32px);text-align:center}
+.toast.show{opacity:1;transform:translate(-50%,0)}
+</style>
+</head>
+<body>
+<header class="hero">
+  <div class="hero-in">
+    <div class="brand">
+      <svg class="logo" viewBox="0 0 48 48" aria-hidden="true">
+        <circle cx="24" cy="24" r="23" fill="#fff" opacity=".22"/>
+        <path d="M6 24c3-9 6-9 9 0s6 9 9 0 6-9 9 0 6 9 9 0" fill="none" stroke="#fff" stroke-width="3.2" stroke-linecap="round"/>
+      </svg>
+      <div><h1>Tone Check</h1><p>Does the phone hear 19 kHz through the phantom?</p></div>
+    </div>
+    <span id="micChip" class="mic-chip">Mic off</span>
+  </div>
+</header>
+
+<nav class="tabs" role="tablist" aria-label="Sections">
+  <button role="tab" data-tab="measure" aria-selected="true">Measure</button>
+  <button role="tab" data-tab="live" aria-selected="false">Live</button>
+  <button role="tab" data-tab="results" aria-selected="false">Results</button>
+</nav>
+
+<main class="wrap">
+  <section id="tab-measure" class="tab">
+    <div id="micCard" class="card"></div>
+
+    <details class="card" id="benchCard">
+      <summary><span class="sumtxt"><h2>Bench values &amp; notes</h2><small class="muted">Saved with every result and in the export</small></span></summary>
+      <div class="grid-form">
+        <label class="f">Phone name<input data-bind="device.phone" placeholder="e.g. Pixel 7 (lab)" autocomplete="off"></label>
+        <label class="f">Source<input data-bind="bench.source" placeholder="Ø12 disc" list="srcList" autocomplete="off"></label>
+        <label class="f">Disc C at 1 kHz (nF)<input data-bind="bench.discC" inputmode="decimal" autocomplete="off"></label>
+        <label class="f">Dummy capacitor (nF)<input data-bind="bench.dummyC" inputmode="decimal" autocomplete="off"></label>
+        <label class="f">Slab thickness (cm)<input data-bind="bench.slab" inputmode="decimal" autocomplete="off"></label>
+        <label class="f">Generator frequency (Hz)<input data-bind="bench.freq" inputmode="numeric" autocomplete="off"></label>
+        <label class="f">Drive (Vpp)<input data-bind="bench.vpp" inputmode="decimal" autocomplete="off"></label>
+        <label class="f">Analyse at (Hz)<input data-bind="bench.f0" inputmode="numeric" placeholder="auto: strongest 17–21 kHz" autocomplete="off"></label>
+      </div>
+      <label class="f notes">Notes<textarea data-bind="bench.notes" placeholder="Recipe, what you changed, anything odd…"></textarea></label>
+    </details>
+
+    <div class="card">
+      <div class="row-h"><h2>What to measure</h2><button class="btn ghost small" id="addSetBtn" type="button">+ Add a set</button></div>
+      <p class="muted">Each set is one placement and distance. Record its takes one at a time, in any order, whenever you're ready. For more phones, open this page on each one: each phone keeps its own results.</p>
+      <ol id="setList" class="setlist"></ol>
+    </div>
+
+    <div id="setView"></div>
+  </section>
+
+  <section id="tab-live" class="tab" hidden>
+    <div class="card">
+      <div class="row-h"><h2>Live spectrum</h2>
+        <div class="seg-ctl" role="group" aria-label="Range"><button type="button" data-range="band" class="on">15–24 kHz</button><button type="button" data-range="full">Full</button></div>
+      </div>
+      <div class="readouts">
+        <div class="ro"><span class="ro-l">Strongest line, 15–24 kHz</span><span class="ro-v" id="liveF">—</span></div>
+        <div class="ro"><span class="ro-l">Its level (live scale)</span><span class="ro-v" id="liveL">—</span></div>
+        <div class="ro"><span class="ro-l">Input RMS / peak</span><span class="ro-v" id="liveIn">—</span></div>
+      </div>
+      <canvas id="liveCanvas" class="chart tall" aria-label="Live spectrum"></canvas>
+      <div class="row-btns">
+        <label class="toggle"><input type="checkbox" id="holdChk"> Peak hold (for a sweep)</label>
+        <button class="btn ghost small" id="holdClear" type="button">Clear hold</button>
+      </div>
+      <p class="muted" id="liveNote">For looking only; nothing here is saved. Record takes on the Measure tab.</p>
+    </div>
+  </section>
+
+  <section id="tab-results" class="tab" hidden>
+    <div id="exportCard" class="card"></div>
+    <div id="resultsList" class="tab"></div>
+  </section>
+
+  <footer id="savedLine" class="saved"></footer>
+</main>
+
+<div id="overlay" class="overlay" hidden>
+  <div class="ov-card" role="dialog" aria-modal="true" aria-labelledby="ovTitle">
+    <div class="ov-kind" id="ovKind"></div>
+    <h2 id="ovTitle"></h2>
+    <p id="ovHow" class="muted" style="margin:0"></p>
+    <div class="ring"><svg viewBox="0 0 120 120" aria-hidden="true"><circle class="ring-bg" cx="60" cy="60" r="52"/><circle id="ovArc" class="ring-fg" cx="60" cy="60" r="52"/></svg>
+      <div class="ring-txt"><span id="ovBig"></span><span id="ovSmall"></span></div></div>
+    <div><span id="ovPeak">—</span><div class="meter"><span id="ovMeter"></span></div></div>
+    <button class="btn ghost" id="ovCancel" type="button">Cancel</button>
+  </div>
+</div>
+
+<dialog id="addDlg">
+  <form method="dialog" class="dlg">
+    <h2>Add a set</h2>
+    <label class="f">Placement<select name="placement"><option value="flat">Flat on the gel</option><option value="edge-on">Edge-on (as on a belly)</option></select></label>
+    <label class="f">Disc to phone (cm)<input name="depth" inputmode="decimal" value="5"></label>
+    <label class="f">Source<input name="source" value="Ø12" list="srcList"></label>
+    <label class="toggle"><input type="checkbox" name="optional"> Optional</label>
+    <div class="dlg-btns"><button value="cancel" class="btn ghost" type="submit">Cancel</button><button value="add" class="btn primary" type="submit">Add</button></div>
+  </form>
+</dialog>
+<datalist id="srcList"><option value="Ø12"><option value="Ø20"><option value="Head A"><option value="Head N"></datalist>
+<div id="toast" class="toast" role="status" aria-live="polite"></div>
+
+<script>
+'use strict';
+/* ===== helpers ===== */
+const $ = (s, r = document) => r.querySelector(s);
+const $$ = (s, r = document) => [...r.querySelectorAll(s)];
+function h(tag, attrs, ...kids) {
+  const e = document.createElement(tag);
+  for (const [k, v] of Object.entries(attrs || {})) {
+    if (v == null || v === false) continue;
+    if (k === 'class') e.className = v;
+    else if (k.startsWith('on')) e.addEventListener(k.slice(2), v);
+    else e.setAttribute(k, v === true ? '' : v);
+  }
+  for (const c of kids.flat(3)) { if (c == null || c === false) continue; e.append(c.nodeType ? c : document.createTextNode(String(c))); }
+  return e;
+}
+const sleep = ms => new Promise(r => setTimeout(r, ms));
+const idle = () => new Promise(r => setTimeout(r, 0));
+const uid = () => Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
+const f1 = x => (Number.isFinite(x) ? x.toFixed(1) : '—');
+const fmtHz = x => (Number.isFinite(x) ? Math.round(x).toLocaleString('en-US') : '—');
+const num = s => { const v = parseFloat(String(s ?? '').replace(',', '.')); return Number.isFinite(v) ? v : NaN; };
+const pad2 = n => String(n).padStart(2, '0');
+const ymd = t => { const d = new Date(t); return d.getFullYear() + pad2(d.getMonth() + 1) + pad2(d.getDate()); };
+const timeStr = t => { const d = new Date(t); return `${d.toLocaleDateString(undefined, { day: 'numeric', month: 'short' })} ${pad2(d.getHours())}:${pad2(d.getMinutes())}`; };
+const slug = s => (String(s || '').replace(/Ø/g, 'D').replace(/[^A-Za-z0-9]+/g, '-').replace(/^-+|-+$/g, '').toLowerCase() || 'phone');
+let toastT;
+function toast(msg) { const t = $('#toast'); t.textContent = msg; t.classList.add('show'); clearTimeout(toastT); toastT = setTimeout(() => t.classList.remove('show'), 2800); }
+
+/* ===== what is measured ===== */
+const TAKES = [
+  { k: 'off', name: 'Off', sub: 'Noise floor', dur: 10 },
+  { k: 'tone', name: 'Tone', sub: 'Disc driven', dur: 10 },
+  { k: 'cap', name: 'Capacitor', sub: 'Cable-pickup check', dur: 10 },
+  { k: 'moved', name: 'Moved', sub: 'Does the level follow the source?', dur: 10 },
+  { k: 'sweep', name: 'Sweep', sub: 'Optional · where is it loudest?', dur: 40, optional: true },
+];
+const MAIN = ['off', 'tone', 'cap', 'moved'];
+const TK = Object.fromEntries(TAKES.map(t => [t.k, t]));
+const KCOL = { off: '#8b909a', tone: '#ff5f45', cap: '#f2a100', moved: '#00a59d', sweep: '#7657f6' };
+
+function mkSet(placement, depth, optional) { return { id: uid(), placement, depth: String(depth), optional: !!optional, takes: {} }; }
+function defaultState() {
+  return {
+    v: 1, device: { phone: '' },
+    bench: { source: 'Ø12', discC: '', dummyC: '', slab: '3', freq: '19000', vpp: '8', f0: '', notes: '' },
+    sets: [mkSet('flat', 5, false), mkSet('edge-on', 5, false), mkSet('flat', 8, true)],
+    dur: {}, current: null,
+  };
+}
+function migrate(s) {
+  const d = defaultState();
+  if (!s || typeof s !== 'object') return d;
+  s.device = Object.assign(d.device, s.device || {});
+  s.bench = Object.assign(d.bench, s.bench || {});
+  if (!Array.isArray(s.sets)) s.sets = d.sets;
+  s.sets.forEach(x => { x.takes = x.takes || {}; });
+  s.dur = s.dur || {};
+  return s;
+}
+let state = defaultState();
+const setLabel = s => `${s.placement === 'edge-on' ? 'Edge-on' : 'Flat'} · ${s.depth} cm`;
+function setHow(s) {
+  const pl = s.placement === 'edge-on'
+    ? 'Phone upright in the clamp, its bottom edge (the mic) resting on the gel right above the disc. Blot the gel dry first.'
+    : 'Phone flat along the slab, its bottom edge (the mic) right above the disc.';
+  const slab = num(state.bench.slab), d = num(s.depth);
+  const geo = Number.isFinite(slab) && Number.isFinite(d) ? ` Disc ${+(Math.max(0, d - slab)).toFixed(1)} cm under the water + ${slab} cm gel = ${d} cm to the phone.` : '';
+  return pl + geo;
+}
+function takeHow(t) {
+  const f = num(state.bench.freq), v = state.bench.vpp || '8';
+  switch (t.k) {
+    case 'off': return 'Generator output off. Disc clipped as for the tone. Hands off the phone, the tube and the tank.';
+    case 'tone': return `Output on: ${Number.isFinite(f) ? fmtHz(f) : '19,000'} Hz, ${v} Vpp into the disc.`;
+    case 'cap': return 'Move the clips from the disc’s leads to the dummy capacitor at the rim. Same drive; the disc stays where it is.';
+    case 'moved': return 'Clips back on the disc. Slide the tube 7 cm sideways; the phone stays put.';
+    case 'sweep': return 'Disc driven. Start recording, then turn the generator slowly from 15 to 24 kHz. Once per phone is enough.';
+  }
+  return '';
+}
+const curSet = () => state.sets.find(s => s.id === state.current) || state.sets[0] || null;
+function findTake(id) { for (const s of state.sets) for (const [k, t] of Object.entries(s.takes)) if (t.id === id) return { s, k, t }; return null; }
+
+/* ===== storage: IndexedDB (state + recordings), memory fallback ===== */
+const DB = {
+  db: null, ok: false,
+  open() {
+    return new Promise(res => {
+      let done = false; const fin = ok => { if (!done) { done = true; res(ok); } };
+      setTimeout(() => fin(false), 3000);   // some browsers never answer (private mode, local files)
+      let rq; try { rq = indexedDB.open('tone-check', 1); } catch (e) { fin(false); return; }
+      rq.onupgradeneeded = () => { const d = rq.result; for (const n of ['kv', 'audio']) if (!d.objectStoreNames.contains(n)) d.createObjectStore(n); };
+      rq.onsuccess = () => { if (done) return; this.db = rq.result; this.ok = true; fin(true); };
+      rq.onerror = () => fin(false);
+      rq.onblocked = () => fin(false);
+    });
+  },
+  run(store, mode, fn) {
+    return new Promise((res, rej) => {
+      const tx = this.db.transaction(store, mode); const rq = fn(tx.objectStore(store));
+      tx.oncomplete = () => res(rq ? rq.result : undefined); tx.onerror = () => rej(tx.error); tx.onabort = () => rej(tx.error);
+    });
+  },
+  get(st, k) { return this.run(st, 'readonly', s => s.get(k)); },
+  put(st, k, v) { return this.run(st, 'readwrite', s => s.put(v, k)); },
+  del(st, k) { return this.run(st, 'readwrite', s => s.delete(k)); },
+};
+const memAudio = new Map();
+async function putAudio(id, v) { if (DB.ok) await DB.put('audio', id, v); else memAudio.set(id, v); }
+async function getAudio(id) { return DB.ok ? DB.get('audio', id) : memAudio.get(id); }
+async function delAudio(id) { psdCache.delete(id); sweepCache.delete(id); errCache.delete(id); if (DB.ok) await DB.del('audio', id); else memAudio.delete(id); }
+let saveT, lastSaved = null, saveErr = null;
+function save() {
+  clearTimeout(saveT);
+  saveT = setTimeout(async () => {
+    try { if (DB.ok) { await DB.put('kv', 'state', JSON.parse(JSON.stringify(state))); lastSaved = Date.now(); saveErr = null; } else saveErr = 'storage unavailable'; }
+    catch (e) { saveErr = e.message || String(e); }
+    renderSaved();
+  }, 250);
+}
+function renderSaved() {
+  const el = $('#savedLine'); el.replaceChildren();
+  if (saveErr) el.append(h('span', { class: 'warn' }, `Not saved on this phone (${saveErr}). Download your results on the Results tab.`));
+  else if (lastSaved) el.append('Saved on this phone ', h('b', {}, '✓'), ` ${pad2(new Date(lastSaved).getHours())}:${pad2(new Date(lastSaved).getMinutes())}`);
+  else el.append('Everything you record is saved on this phone automatically.');
+}
+
+/* ===== DSP (same method as software/phone_tone_analysis.py) ===== */
+const _tw = new Map();
+function fft(re, im, inv) {
+  const n = re.length; let t = _tw.get(n);
+  if (!t) {
+    const bits = Math.round(Math.log2(n)), rev = new Uint32Array(n);
+    for (let i = 0; i < n; i++) { let r = 0, x = i; for (let b = 0; b < bits; b++) { r = (r << 1) | (x & 1); x >>= 1; } rev[i] = r; }
+    const c = new Float64Array(n / 2), s = new Float64Array(n / 2);
+    for (let i = 0; i < n / 2; i++) { c[i] = Math.cos(2 * Math.PI * i / n); s[i] = Math.sin(2 * Math.PI * i / n); }
+    t = { rev, c, s }; _tw.set(n, t);
+  }
+  const { rev, c, s } = t;
+  for (let i = 0; i < n; i++) { const j = rev[i]; if (j > i) { let x = re[i]; re[i] = re[j]; re[j] = x; x = im[i]; im[i] = im[j]; im[j] = x; } }
+  for (let size = 2; size <= n; size <<= 1) {
+    const half = size >> 1, step = n / size;
+    for (let i = 0; i < n; i += size) {
+      for (let j = 0, k = 0; j < half; j++, k += step) {
+        const wr = c[k], wi = inv ? s[k] : -s[k], a = i + j, b = a + half;
+        const xr = re[b] * wr - im[b] * wi, xi = re[b] * wi + im[b] * wr;
+        re[b] = re[a] - xr; im[b] = im[a] - xi; re[a] += xr; im[a] += xi;
+      }
+    }
+  }
+  if (inv) for (let i = 0; i < n; i++) { re[i] /= n; im[i] /= n; }
+}
+const _blue = new Map();
+function bluestein(N) {   // any-length DFT through a power-of-two FFT
+  let B = _blue.get(N); if (B) return B;
+  let M = 1; while (M < 2 * N - 1) M <<= 1;
+  const wr = new Float64Array(N), wi = new Float64Array(N);
+  for (let k = 0; k < N; k++) { const a = Math.PI * ((k * k) % (2 * N)) / N; wr[k] = Math.cos(a); wi[k] = -Math.sin(a); }
+  const br = new Float64Array(M), bi = new Float64Array(M);
+  br[0] = wr[0]; bi[0] = -wi[0];
+  for (let k = 1; k < N; k++) { br[k] = br[M - k] = wr[k]; bi[k] = bi[M - k] = -wi[k]; }
+  fft(br, bi, false);
+  B = { N, M, wr, wi, br, bi, ar: new Float64Array(M), ai: new Float64Array(M) }; _blue.set(N, B); return B;
+}
+function addPower(y, acc) {   // acc[k] += |DFT(y)[k]|^2, k = 0..len(acc)-1
+  const { N, M, wr, wi, br, bi, ar, ai } = bluestein(y.length);
+  ar.fill(0); ai.fill(0);
+  for (let k = 0; k < N; k++) { ar[k] = y[k] * wr[k]; ai[k] = y[k] * wi[k]; }
+  fft(ar, ai, false);
+  for (let k = 0; k < M; k++) { const r = ar[k] * br[k] - ai[k] * bi[k], i = ar[k] * bi[k] + ai[k] * br[k]; ar[k] = r; ai[k] = i; }
+  fft(ar, ai, true);
+  for (let k = 0; k < acc.length; k++) { const r = ar[k] * wr[k] - ai[k] * wi[k], i = ar[k] * wi[k] + ai[k] * wr[k]; acc[k] += r * r + i * i; }
+}
+async function welch(x, fs) {   // scipy.signal.welch(x, fs, 'hann', nperseg=int(fs/10), noverlap=n//2, scaling='density')
+  const n = Math.floor(fs / 10), step = n - Math.floor(n / 2), nb = Math.floor(n / 2) + 1;
+  if (x.length < n) throw new Error('recording too short');
+  const w = new Float64Array(n); let s2 = 0;
+  for (let k = 0; k < n; k++) { w[k] = 0.5 - 0.5 * Math.cos(2 * Math.PI * k / n); s2 += w[k] * w[k]; }
+  const acc = new Float64Array(nb), y = new Float64Array(n); let segs = 0;
+  for (let s = 0; s + n <= x.length; s += step) {
+    let m = 0; for (let k = 0; k < n; k++) m += x[s + k]; m /= n;
+    for (let k = 0; k < n; k++) y[k] = (x[s + k] - m) * w[k];
+    addPower(y, acc); segs++;
+    if (segs % 10 === 0) await idle();
+  }
+  const scale = 1 / (fs * s2 * segs), p = new Float64Array(nb), f = new Float64Array(nb), db = new Float64Array(nb);
+  const last = n % 2 === 0 ? nb - 1 : nb;
+  for (let k = 0; k < nb; k++) { p[k] = acc[k] * scale * (k > 0 && k < last ? 2 : 1); f[k] = k * fs / n; db[k] = 10 * Math.log10(p[k] + 1e-30); }
+  return { f, p, db, fs };
+}
+function median(a) { const s = Float64Array.from(a).sort(); const m = s.length; return m ? (m % 2 ? s[(m - 1) / 2] : 0.5 * (s[m / 2 - 1] + s[m / 2])) : NaN; }
+function lineSNR(psd, f0, half = 15, guard = 50, span = 300) {
+  const { f, p } = psd, df = f[1] - f[0]; let tone = 0, nl = 0; const ring = [];
+  for (let k = 0; k < f.length; k++) { const d = Math.abs(f[k] - f0); if (d <= half) { tone += p[k]; nl++; } else if (d > guard && d <= span) ring.push(p[k]); }
+  const flo = median(ring); tone *= df;
+  const excess = tone - flo * df * nl, noise10 = flo * 10;
+  return { tone: 10 * Math.log10(tone + 1e-30), floor: 10 * Math.log10(noise10 + 1e-30), snr: excess > 0 ? 10 * Math.log10(excess / noise10) : NaN };
+}
+function autoF0(psds) {   // strongest line 17–21 kHz over the takes
+  let best = null;
+  for (const q of psds) for (let k = 0; k < q.f.length; k++) if (q.f[k] >= 17000 && q.f[k] <= 21000 && (!best || q.p[k] > best.p)) best = { f: q.f[k], p: q.p[k] };
+  return best ? best.f : NaN;
+}
+async function sweepAnalysis(x, fs) {   // peak-hold spectrum, 4096-point Hann frames
+  const N = 4096, hop = 2048, w = new Float64Array(N); let sw = 0;
+  for (let k = 0; k < N; k++) { w[k] = 0.5 - 0.5 * Math.cos(2 * Math.PI * k / N); sw += w[k]; }
+  const k0 = Math.ceil(15000 * N / fs), k1 = Math.min(Math.floor(24000 * N / fs), N / 2);
+  const peak = new Float64Array(k1 - k0 + 1), re = new Float64Array(N), im = new Float64Array(N); let fr = 0;
+  for (let s = 0; s + N <= x.length; s += hop) {
+    for (let k = 0; k < N; k++) { re[k] = x[s + k] * w[k]; im[k] = 0; }
+    fft(re, im, false);
+    for (let k = k0; k <= k1; k++) { const pw = re[k] * re[k] + im[k] * im[k]; if (pw > peak[k - k0]) peak[k - k0] = pw; }
+    if (++fr % 40 === 0) await idle();
+  }
+  if (!fr) throw new Error('recording too short');
+  const f = new Float64Array(peak.length), db = new Float64Array(peak.length); let bi = 0;
+  for (let i = 0; i < peak.length; i++) { f[i] = (k0 + i) * fs / N; db[i] = 20 * Math.log10(2 * Math.sqrt(peak[i]) / sw + 1e-20); if (db[i] > db[bi]) bi = i; }
+  return { f, db, fPeak: f[bi], lPeak: db[bi] };
+}
+
+/* ===== analysis cache ===== */
+const psdCache = new Map(), sweepCache = new Map(), errCache = new Map(), pending = new Set();
+let pumping = false;
+const trimEdges = (x, fs) => { const k = Math.floor(0.5 * fs); return x.length > 4 * k ? x.subarray(k, x.length - k) : x; };
+const toInt16 = x => { const o = new Int16Array(x.length); for (let i = 0; i < x.length; i++) { const v = Math.max(-1, Math.min(1, x[i])); o[i] = Math.round(v * 32767); } return o; };
+const toF32 = a => { const o = new Float32Array(a.length); for (let i = 0; i < a.length; i++) o[i] = a[i] / 32768; return o; };
+async function analyseTake(kind, id, x, fs) {
+  if (kind === 'sweep') sweepCache.set(id, await sweepAnalysis(x, fs));
+  else psdCache.set(id, await welch(trimEdges(x, fs), fs));
+}
+function want(t) {
+  if (!t) return; const c = t.kind === 'sweep' ? sweepCache : psdCache;
+  if (c.has(t.id) || errCache.has(t.id) || pending.has(t.id)) return;
+  pending.add(t.id); pump();
+}
+async function pump() {
+  if (pumping) return; pumping = true;
+  while (pending.size) {
+    const id = pending.values().next().value; const ft = findTake(id);
+    try { if (ft) { const a = await getAudio(id); if (!a) throw new Error('recording missing'); await analyseTake(ft.t.kind, id, toF32(new Int16Array(a.pcm)), a.fs); } }
+    catch (e) { errCache.set(id, e.message || String(e)); }
+    pending.delete(id); scheduleRender();
+  }
+  pumping = false;
+}
+async function ensureAll() {
+  for (const s of state.sets) for (const t of Object.values(s.takes)) want(t);
+  while (pending.size || pumping) await sleep(60);
+}
+function setAnalysis(s) {
+  const ks = MAIN.filter(k => s.takes[k]);
+  ks.forEach(k => want(s.takes[k])); if (s.takes.sweep) want(s.takes.sweep);
+  const ready = ks.filter(k => psdCache.has(s.takes[k].id));
+  if (!ready.length) return null;
+  let f0 = num(state.bench.f0), auto = false;
+  if (!(f0 > 0)) { auto = true; f0 = autoF0(ready.map(k => psdCache.get(s.takes[k].id))); }
+  const rows = {}; for (const k of ready) rows[k] = lineSNR(psdCache.get(s.takes[k].id), f0);
+  return { f0, auto, rows, chk: checks(rows), complete: MAIN.every(k => rows[k]) };
+}
+function checks(r) {
+  const out = [], t = r.tone; if (!t) return out;
+  if (r.off) { const d = t.tone - r.off.tone; out.push({ label: 'Heard above the noise', ok: d >= 10, d, detail: `tone − off = ${f1(d)} dB · needs ≥ 10` }); }
+  if (r.cap) { const d = t.tone - r.cap.tone; out.push({ label: 'Not cable pickup', ok: d >= 10, d, detail: `tone − capacitor = ${f1(d)} dB · needs ≥ 10${d >= 20 ? ' · clean' : ''}` }); }
+  if (r.moved) { const d = t.tone - r.moved.tone; out.push({ label: 'Follows the source', ok: d >= 3, d, detail: `tone − moved = ${f1(d)} dB · needs ≥ 3, about 5 expected` }); }
+  if (r.cap && r.off) { const d = r.cap.tone - r.off.tone; out.push({ label: 'Capacitor take clean', ok: d <= 3, d, info: true, detail: `capacitor − off = ${f1(d)} dB · ≤ 3 is clean` }); }
+  return out;
+}
+function verdictOf(s, an) {
+  const n = MAIN.filter(k => s.takes[k]).length;
+  if (an && an.complete) { const ok = an.chk.filter(c => !c.info).every(c => c.ok); return ok ? { cls: 'pass', text: 'Pass' } : { cls: 'fail', text: 'Check' }; }
+  if (n) return { cls: 'prog', text: `${n}/4` };
+  return { cls: '', text: s.optional ? 'Optional' : 'To do' };
+}
+
+/* ===== audio engine ===== */
+const WORKLET = `class Capture extends AudioWorkletProcessor{constructor(){super();this.on=false;this.b=new Float32Array(2048);this.n=0;this.port.onmessage=e=>{if(e.data==='start'){this.on=true;this.n=0}else if(e.data==='stop'){this.on=false;this.n=0}}}
+process(inputs){const ch=inputs[0]&&inputs[0][0];if(this.on&&ch){let i=0;while(i<ch.length){const k=Math.min(ch.length-i,2048-this.n);this.b.set(ch.subarray(i,i+k),this.n);this.n+=k;i+=k;if(this.n===2048){this.port.postMessage(this.b.slice(0));this.n=0}}}return true}}
+registerProcessor('capture',Capture);`;
+const AE = { ctx: null, stream: null, an: null, node: null, sp: null, fs: 0, settings: {}, label: '', rec: null };
+let devices = [], curDevice = '', micErr = '';
+const micPossible = () => window.isSecureContext && !!(navigator.mediaDevices && navigator.mediaDevices.getUserMedia);
+async function startMic(deviceId) {
+  await stopMic();
+  const audio = { echoCancellation: false, noiseSuppression: false, autoGainControl: false, channelCount: { ideal: 1 } };
+  if (deviceId) audio.deviceId = { exact: deviceId };
+  AE.stream = await navigator.mediaDevices.getUserMedia({ audio });
+  const Ctx = window.AudioContext || window.webkitAudioContext; let src;
+  try { AE.ctx = new Ctx({ sampleRate: 48000 }); src = AE.ctx.createMediaStreamSource(AE.stream); }
+  catch (e) { try { AE.ctx && AE.ctx.close(); } catch (_) {} AE.ctx = new Ctx(); src = AE.ctx.createMediaStreamSource(AE.stream); }
+  try { await AE.ctx.resume(); } catch (e) {}
+  AE.fs = AE.ctx.sampleRate;
+  const split = AE.ctx.createChannelSplitter(2); src.connect(split);
+  const sink = AE.ctx.createGain(); sink.gain.value = 0; sink.connect(AE.ctx.destination);
+  AE.an = AE.ctx.createAnalyser(); AE.an.fftSize = 8192; AE.an.smoothingTimeConstant = 0.5; AE.an.minDecibels = -160; AE.an.maxDecibels = 0;
+  split.connect(AE.an, 0); AE.an.connect(sink);
+  try {
+    if (!AE.ctx.audioWorklet) throw new Error('no worklet');
+    const url = URL.createObjectURL(new Blob([WORKLET], { type: 'application/javascript' }));
+    await AE.ctx.audioWorklet.addModule(url); URL.revokeObjectURL(url);
+    AE.node = new AudioWorkletNode(AE.ctx, 'capture', { numberOfInputs: 1, numberOfOutputs: 1, outputChannelCount: [1], channelCount: 1, channelCountMode: 'explicit' });
+    AE.node.port.onmessage = e => { if (AE.rec) AE.rec.push(e.data); };
+    split.connect(AE.node, 0); AE.node.connect(sink);
+  } catch (e) {
+    AE.node = null; AE.sp = AE.ctx.createScriptProcessor(4096, 1, 1);
+    AE.sp.onaudioprocess = ev => { if (AE.rec) AE.rec.push(new Float32Array(ev.inputBuffer.getChannelData(0))); };
+    split.connect(AE.sp, 0); AE.sp.connect(sink);
+  }
+  const tr = AE.stream.getAudioTracks()[0];
+  AE.settings = (tr && tr.getSettings) ? tr.getSettings() : {}; AE.label = tr ? tr.label : '';
+  curDevice = AE.settings.deviceId || deviceId || '';
+  if (tr) tr.onended = () => { toast('The microphone stopped'); stopMic().then(render); };
+  try { devices = (await navigator.mediaDevices.enumerateDevices()).filter(d => d.kind === 'audioinput'); } catch (e) { devices = []; }
+}
+async function stopMic() {
+  if (AE.rec) AE.rec.cancel();
+  try { AE.stream && AE.stream.getTracks().forEach(t => t.stop()); } catch (e) {}
+  try { AE.ctx && await AE.ctx.close(); } catch (e) {}
+  Object.assign(AE, { ctx: null, stream: null, an: null, node: null, sp: null, fs: 0, settings: {}, label: '', rec: null });
+}
+function record(seconds, onProgress) {
+  return new Promise((resolve, reject) => {
+    const target = Math.round(seconds * AE.fs), chunks = []; let n = 0, done = false;
+    const stop = () => { AE.rec = null; if (AE.node) AE.node.port.postMessage('stop'); };
+    AE.rec = {
+      push(c) {
+        if (done) return; chunks.push(c); n += c.length; onProgress && onProgress(Math.min(1, n / target));
+        if (n >= target) {
+          done = true; stop(); const out = new Float32Array(target); let o = 0;
+          for (const ch of chunks) { const k = Math.min(ch.length, target - o); out.set(ch.subarray(0, k), o); o += k; if (o >= target) break; }
+          resolve(out);
+        }
+      },
+      cancel() { if (done) return; done = true; stop(); reject(new Error('cancelled')); },
+    };
+    if (AE.node) AE.node.port.postMessage('start');
+  });
+}
+let wakeLock = null;
+async function keepAwake(on) {
+  try { if (on && 'wakeLock' in navigator) wakeLock = await navigator.wakeLock.request('screen'); else if (!on && wakeLock) { await wakeLock.release(); wakeLock = null; } } catch (e) {}
+}
+document.addEventListener('visibilitychange', () => {
+  if (document.hidden && AE.rec) { AE.rec.cancel(); toast('Recording stopped: the page went to the background'); }
+  if (!document.hidden && AE.ctx && AE.ctx.state !== 'running') AE.ctx.resume().catch(() => {});
+});
+
+/* ===== WAV + ZIP ===== */
+function encodeWav(i16, fs) {
+  const b = new ArrayBuffer(44 + i16.length * 2), v = new DataView(b), w = (o, s) => { for (let i = 0; i < 4; i++) v.setUint8(o + i, s.charCodeAt(i)); };
+  w(0, 'RIFF'); v.setUint32(4, 36 + i16.length * 2, true); w(8, 'WAVE'); w(12, 'fmt '); v.setUint32(16, 16, true); v.setUint16(20, 1, true); v.setUint16(22, 1, true);
+  v.setUint32(24, fs, true); v.setUint32(28, fs * 2, true); v.setUint16(32, 2, true); v.setUint16(34, 16, true); w(36, 'data'); v.setUint32(40, i16.length * 2, true);
+  new Int16Array(b, 44).set(i16); return b;
+}
+function decodeWav(buf) {
+  const v = new DataView(buf), tag = o => String.fromCharCode(v.getUint8(o), v.getUint8(o + 1), v.getUint8(o + 2), v.getUint8(o + 3));
+  if (buf.byteLength < 44 || tag(0) !== 'RIFF' || tag(8) !== 'WAVE') return null;
+  let o = 12, fmt = null, data = null;
+  while (o + 8 <= buf.byteLength) {
+    const id = tag(o), sz = v.getUint32(o + 4, true), b = o + 8;
+    if (id === 'fmt ') { let af = v.getUint16(b, true); const ch = v.getUint16(b + 2, true), fs = v.getUint32(b + 4, true), bits = v.getUint16(b + 14, true); if (af === 0xFFFE && sz >= 26) af = v.getUint16(b + 24, true); fmt = { af, ch, fs, bits }; }
+    else if (id === 'data') data = { o: b, n: Math.min(sz, buf.byteLength - b) };
+    o = b + sz + (sz & 1);
+  }
+  if (!fmt || !data) return null;
+  const { af, ch, fs, bits } = fmt, bps = bits / 8, frames = Math.floor(data.n / (bps * ch)), x = new Float32Array(frames);
+  for (let i = 0; i < frames; i++) {
+    const p = data.o + i * bps * ch; let s;
+    if (af === 3 && bits === 32) s = v.getFloat32(p, true); else if (af === 3 && bits === 64) s = v.getFloat64(p, true);
+    else if (bits === 16) s = v.getInt16(p, true) / 32768; else if (bits === 24) s = (v.getUint8(p) | (v.getUint8(p + 1) << 8) | (v.getInt8(p + 2) << 16)) / 8388608;
+    else if (bits === 32) s = v.getInt32(p, true) / 2147483648; else if (bits === 8) s = (v.getUint8(p) - 128) / 128; else return null;
+    x[i] = s;
+  }
+  return { fs, x };
+}
+const CRC = (() => { const t = new Uint32Array(256); for (let n = 0; n < 256; n++) { let c = n; for (let k = 0; k < 8; k++) c = c & 1 ? 0xEDB88320 ^ (c >>> 1) : c >>> 1; t[n] = c >>> 0; } return t; })();
+function crc32(u) { let c = 0xFFFFFFFF; for (let i = 0; i < u.length; i++) c = CRC[(c ^ u[i]) & 255] ^ (c >>> 8); return (c ^ 0xFFFFFFFF) >>> 0; }
+function makeZip(files) {
+  const enc = new TextEncoder(), parts = [], cen = [], d = new Date(); let off = 0;
+  const tm = ((d.getHours() << 11) | (d.getMinutes() << 5) | (d.getSeconds() >> 1)) & 0xFFFF, dt = (((d.getFullYear() - 1980) << 9) | ((d.getMonth() + 1) << 5) | d.getDate()) & 0xFFFF;
+  for (const f of files) {
+    const nm = enc.encode(f.name), crc = crc32(f.data), L = new DataView(new ArrayBuffer(30)), C = new DataView(new ArrayBuffer(46));
+    L.setUint32(0, 0x04034b50, true); L.setUint16(4, 20, true); L.setUint16(6, 0x0800, true); L.setUint16(10, tm, true); L.setUint16(12, dt, true);
+    L.setUint32(14, crc, true); L.setUint32(18, f.data.length, true); L.setUint32(22, f.data.length, true); L.setUint16(26, nm.length, true);
+    C.setUint32(0, 0x02014b50, true); C.setUint16(4, 20, true); C.setUint16(6, 20, true); C.setUint16(8, 0x0800, true); C.setUint16(12, tm, true); C.setUint16(14, dt, true);
+    C.setUint32(16, crc, true); C.setUint32(20, f.data.length, true); C.setUint32(24, f.data.length, true); C.setUint16(28, nm.length, true); C.setUint32(42, off, true);
+    parts.push(new Uint8Array(L.buffer), nm, f.data); cen.push(new Uint8Array(C.buffer), nm); off += 30 + nm.length + f.data.length;
+  }
+  const size = cen.reduce((a, b) => a + b.length, 0), E = new DataView(new ArrayBuffer(22));
+  E.setUint32(0, 0x06054b50, true); E.setUint16(8, files.length, true); E.setUint16(10, files.length, true); E.setUint32(12, size, true); E.setUint32(16, off, true);
+  return new Blob([...parts, ...cen, new Uint8Array(E.buffer)], { type: 'application/zip' });
+}
+function download(blob, name) {
+  const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = name; document.body.append(a); a.click();
+  setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 5000);
+}
+const canShareFiles = () => { try { return !!(navigator.canShare && navigator.canShare({ files: [new File(['x'], 'x.txt', { type: 'text/plain' })] })); } catch (e) { return false; } };
+async function shareBlob(blob, name) {
+  const file = new File([blob], name, { type: blob.type });
+  try { await navigator.share({ files: [file], title: name }); } catch (e) { if (e.name !== 'AbortError') { toast('Sharing failed; downloading instead'); download(blob, name); } }
+}
+const wavName = (s, t) => `${ymd(t.at)}_${s.placement}-${slug(s.depth)}cm-${slug(state.bench.source)}_${t.kind}_${slug(state.device.phone)}.wav`;
+async function takeWavBlob(t) { const a = await getAudio(t.id); if (!a) throw new Error('recording missing'); return new Blob([encodeWav(new Int16Array(a.pcm), a.fs)], { type: 'audio/wav' }); }
+
+/* ===== export ===== */
+function csvCell(v) { const s = v == null ? '' : String(v); return /[",\n;]/.test(s) ? '"' + s.replace(/"/g, '""') + '"' : s; }
+function buildCSV() {
+  const b = state.bench, head = ['phone', 'set', 'placement', 'disc_to_phone_cm', 'source', 'take', 'file', 'recorded', 'duration_s', 'fs_Hz', 'analysed_at_Hz',
+    'tone_dBFS', 'floor_dBFS_10Hz', 'snr_10Hz_dB', 'tone_minus_off_dB', 'tone_minus_cap_dB', 'tone_minus_moved_dB', 'cap_minus_off_dB', 'set_verdict',
+    'sweep_peak_Hz', 'sweep_peak_dBFS', 'disc_C_nF', 'dummy_C_nF', 'slab_cm', 'gen_Hz', 'gen_Vpp'];
+  const rows = [head];
+  for (const s of state.sets) {
+    const an = setAnalysis(s), v = verdictOf(s, an), d = {};
+    if (an) for (const c of an.chk) d[c.label] = c.d;
+    for (const tk of TAKES) {
+      const t = s.takes[tk.k]; if (!t) continue;
+      const r = an && an.rows[tk.k], sw = tk.k === 'sweep' ? sweepCache.get(t.id) : null;
+      rows.push([state.device.phone, setLabel(s), s.placement, s.depth, b.source, tk.k, wavName(s, t), new Date(t.at).toISOString(), (t.n / t.fs).toFixed(2), t.fs,
+        r ? Math.round(an.f0) : '', r ? r.tone.toFixed(1) : '', r ? r.floor.toFixed(1) : '', r && Number.isFinite(r.snr) ? r.snr.toFixed(1) : '',
+        f1n(d['Heard above the noise']), f1n(d['Not cable pickup']), f1n(d['Follows the source']), f1n(d['Capacitor take clean']), v.text,
+        sw ? Math.round(sw.fPeak) : '', sw ? sw.lPeak.toFixed(1) : '', b.discC, b.dummyC, b.slab, b.freq, b.vpp]);
+    }
+  }
+  return '﻿' + rows.map(r => r.map(csvCell).join(',')).join('\r\n') + '\r\n';   // BOM so Excel reads Ø and · correctly
+}
+const f1n = x => (Number.isFinite(x) ? x.toFixed(1) : '');
+function buildNotes() {
+  const b = state.bench;
+  return [`Tone Check export, ${new Date().toISOString()}`, `Phone: ${state.device.phone || '(not named)'}`, `Microphone: ${AE.label || '(not started in this session)'}`,
+    `Source: ${b.source}`, `Disc C at 1 kHz: ${b.discC} nF`, `Dummy capacitor: ${b.dummyC} nF`, `Slab thickness: ${b.slab} cm`,
+    `Generator: ${b.freq} Hz, ${b.vpp} Vpp`, `Analysed at: ${b.f0 || 'auto (strongest line 17–21 kHz)'}`, '', 'Notes:', b.notes || ''].join('\r\n');
+}
+async function exportZip(share) {
+  toast('Preparing the export…'); await ensureAll();
+  const enc = new TextEncoder(), files = [{ name: 'results.csv', data: enc.encode(buildCSV()) }, { name: 'bench_and_notes.txt', data: enc.encode(buildNotes()) }];
+  for (const s of state.sets) for (const tk of TAKES) { const t = s.takes[tk.k]; if (!t) continue; try { files.push({ name: 'recordings/' + wavName(s, t), data: new Uint8Array(await (await takeWavBlob(t)).arrayBuffer()) }); } catch (e) {} }
+  const blob = makeZip(files), name = `${ymd(Date.now())}_tone-check_${slug(state.device.phone)}.zip`;
+  if (share) await shareBlob(blob, name); else download(blob, name);
+}
+
+/* ===== charts ===== */
+function plot(cv, o) {
+  const dpr = Math.min(3, window.devicePixelRatio || 1), W = cv.clientWidth || 300, H = cv.clientHeight || 150;
+  if (cv.width !== Math.round(W * dpr) || cv.height !== Math.round(H * dpr)) { cv.width = Math.round(W * dpr); cv.height = Math.round(H * dpr); }
+  const g = cv.getContext('2d'); g.setTransform(dpr, 0, 0, dpr, 0, 0); g.clearRect(0, 0, W, H);
+  const L = 42, R = 16, T = 10, B = 22, pw = W - L - R, ph = H - T - B, { fmin, fmax } = o; let { ymin, ymax } = o;
+  if (ymin == null || ymax == null) {
+    let lo = Infinity, hi = -Infinity;
+    for (const s of o.series) for (let i = 0; i < s.f.length; i++) { const f = s.f[i]; if (f < fmin || f > fmax) continue; const y = s.y[i]; if (!Number.isFinite(y)) continue; if (y < lo) lo = y; if (y > hi) hi = y; }
+    if (!Number.isFinite(lo)) { lo = -120; hi = -20; }
+    const padY = Math.max(3, (hi - lo) * 0.08); ymin = Math.floor((lo - padY) / 10) * 10; ymax = Math.ceil((hi + padY) / 10) * 10;
+  }
+  const X = f => L + (f - fmin) / (fmax - fmin) * pw, Y = y => T + (1 - (y - ymin) / (ymax - ymin)) * ph;
+  g.font = '11px system-ui, sans-serif'; g.fillStyle = '#8b909a'; g.strokeStyle = '#f1e7d9'; g.lineWidth = 1;
+  const span = fmax - fmin, maxLab = Math.max(2, Math.floor(pw / 52));
+  const sf = [50, 100, 200, 500, 1000, 2000, 5000].find(v => span / v <= maxLab) || 5000;
+  g.textAlign = 'center';
+  for (let f = Math.ceil(fmin / sf) * sf; f <= fmax; f += sf) { const x = Math.round(X(f)) + 0.5; g.beginPath(); g.moveTo(x, T); g.lineTo(x, T + ph); g.stroke(); g.fillText((f / 1000).toFixed(sf >= 1000 ? 0 : sf >= 100 ? 1 : 2) + 'k', x, H - 6); }
+  const ys = [10, 20, 30, 50].find(v => (ymax - ymin) / v <= Math.max(2, ph / 18)) || 50; g.textAlign = 'right';
+  for (let y = Math.ceil(ymin / ys) * ys; y <= ymax; y += ys) { const yy = Math.round(Y(y)) + 0.5; g.beginPath(); g.moveTo(L, yy); g.lineTo(L + pw, yy); g.stroke(); g.fillText(String(y), L - 6, yy + 4); }
+  if (Number.isFinite(o.marker)) { g.save(); g.setLineDash([4, 4]); g.strokeStyle = '#23262c'; g.globalAlpha = 0.4; const x = X(o.marker); g.beginPath(); g.moveTo(x, T); g.lineTo(x, T + ph); g.stroke(); g.restore(); }
+  g.save(); g.beginPath(); g.rect(L, T, pw, ph); g.clip();
+  for (const s of o.series) {
+    g.strokeStyle = s.color; g.lineWidth = s.w || 1.7; g.globalAlpha = s.alpha || 1; g.lineJoin = 'round'; g.beginPath();
+    let started = false, lastPx = null, hi = -Infinity, lo = Infinity;
+    const flush = px => { if (px == null || hi === -Infinity) return; const y1 = Y(hi), y2 = Y(lo); if (!started) { g.moveTo(px, y1); started = true; } else g.lineTo(px, y1); if (y2 !== y1) g.lineTo(px, y2); };
+    for (let i = 0; i < s.f.length; i++) {
+      const f = s.f[i]; if (f < fmin || f > fmax) continue; const y = s.y[i]; if (!Number.isFinite(y)) continue;
+      const px = Math.round(X(f) * 2) / 2; if (px !== lastPx) { flush(lastPx); lastPx = px; hi = -Infinity; lo = Infinity; }
+      if (y > hi) hi = y; if (y < lo) lo = y;
+    }
+    flush(lastPx); g.stroke();
+  }
+  g.restore();
+}
+function drawSetCharts(root, s, an) {
+  requestAnimationFrame(() => {
+    for (const cv of $$('canvas[data-chart]', root)) {
+      const k = cv.dataset.k, t = k ? s.takes[k] : null;
+      if (cv.dataset.chart !== 'overlay' && !t) continue;
+      if (cv.dataset.chart === 'take') { const q = psdCache.get(t.id); if (q) plot(cv, { fmin: 17000, fmax: 21000, series: [{ f: q.f, y: q.db, color: KCOL[k] }], marker: an ? an.f0 : NaN }); }
+      else if (cv.dataset.chart === 'sweep') { const q = sweepCache.get(t.id); if (q) plot(cv, { fmin: 15000, fmax: Math.min(24000, q.f[q.f.length - 1]), series: [{ f: q.f, y: q.db, color: KCOL.sweep }], marker: q.fPeak }); }
+      else if (cv.dataset.chart === 'overlay' && an) {
+        const series = MAIN.filter(m => s.takes[m] && psdCache.has(s.takes[m].id)).map(m => ({ f: psdCache.get(s.takes[m].id).f, y: psdCache.get(s.takes[m].id).db, color: KCOL[m], w: m === 'tone' ? 2.4 : 1.7 }));
+        plot(cv, { fmin: an.f0 - 400, fmax: an.f0 + 400, series, marker: an.f0 });
+      }
+    }
+  });
+}
+
+/* ===== rendering ===== */
+let activeTab = 'measure', renderQueued = false;
+function scheduleRender() { if (renderQueued) return; renderQueued = true; requestAnimationFrame(() => { renderQueued = false; render(); }); }
+function render() { renderMic(); renderSetList(); renderSetView(); if (activeTab === 'results') renderResults(); renderSaved(); }
+function renderMic() {
+  const c = $('#micCard'), chip = $('#micChip'); c.replaceChildren();
+  if (!micPossible()) {
+    chip.textContent = 'No mic here'; chip.className = 'mic-chip';
+    c.append(h('h2', {}, 'Microphone'), h('div', { class: 'warnbox' }, h('b', {}, 'Recording needs an https:// address.'),
+      h('p', {}, 'Phone browsers only allow the microphone on pages served over HTTPS, so this copy can’t record. Open the hosted link instead. Importing WAV files from a recorder app works here too.')));
+    return;
+  }
+  if (!AE.ctx) {
+    chip.textContent = 'Mic off'; chip.className = 'mic-chip';
+    c.append(...[h('h2', {}, 'Microphone'),
+      h('ul', { class: 'tips' }, h('li', {}, 'Airplane mode on, case off.'), h('li', {}, 'Allow the microphone when the browser asks.'), h('li', {}, 'The screen stays on while a take records.')),
+      h('button', { class: 'btn primary big', type: 'button', onclick: onStartMic }, 'Start microphone'),
+      micErr ? h('p', { class: 'warn' }, micErr) : null].filter(Boolean));
+    return;
+  }
+  chip.textContent = 'Mic on'; chip.className = 'mic-chip on';
+  const st = AE.settings || {};
+  const flag = (v, name) => h('span', { class: 'flag ' + (v === false ? 'ok' : v === true ? 'bad' : '') }, `${name} ${v === false ? 'off' : v === true ? 'ON' : '?'}`);
+  c.append(...[
+    h('div', { class: 'row-h' }, h('h2', {}, 'Microphone'), h('button', { class: 'btn ghost small', type: 'button', onclick: async () => { await stopMic(); render(); } }, 'Stop')),
+    h('div', { class: 'flags' }, h('span', { class: 'flag ' + (AE.fs >= 48000 ? 'ok' : 'warn') }, `${fmtHz(AE.fs)} Hz`), flag(st.echoCancellation, 'Echo cancel'), flag(st.noiseSuppression, 'Noise suppression'), flag(st.autoGainControl, 'Auto gain')),
+    devices.length > 1 ? h('label', { class: 'inline' }, 'Input', h('select', { onchange: e => onSwitchMic(e.target.value) }, devices.map((d, i) => h('option', { value: d.deviceId, selected: d.deviceId === curDevice }, d.label || `Microphone ${i + 1}`)))) : null,
+    (st.echoCancellation || st.noiseSuppression || st.autoGainControl) ? h('p', { class: 'warn' }, 'This browser kept some voice processing on. Takes on this phone still compare with each other; note it when comparing phones.') : null,
+    AE.fs < 48000 ? h('p', { class: 'warn' }, `At ${fmtHz(AE.fs)} Hz the spectrum stops at ${fmtHz(AE.fs / 2)} Hz, so the sweep can’t reach 24 kHz.`) : null].filter(Boolean));
+}
+async function onStartMic() {
+  micErr = '';
+  try { await startMic(); }
+  catch (e) { await stopMic(); micErr = e.name === 'NotAllowedError' ? 'Microphone permission was refused. Allow it for this site in the browser settings, then try again.' : `Could not start the microphone: ${e.message || e.name}`; }
+  render(); if (activeTab === 'live') startLive();
+}
+async function onSwitchMic(id) { try { await startMic(id); } catch (e) { micErr = e.message; await stopMic(); } render(); if (activeTab === 'live') startLive(); }
+function renderSetList() {
+  const ol = $('#setList'); ol.replaceChildren();
+  state.sets.forEach((s, i) => {
+    const v = verdictOf(s, setAnalysis(s));
+    ol.append(h('li', {}, h('button', { type: 'button', class: 'set-item' + (s.id === (curSet() || {}).id ? ' on' : ''), onclick: () => { state.current = s.id; save(); render(); $('#setView').scrollIntoView({ behavior: 'smooth', block: 'start' }); } },
+      h('span', { class: 'set-n' }, String(i + 1)),
+      h('span', { class: 'set-t' }, h('b', {}, setLabel(s)), h('small', {}, s.optional ? 'Optional' : 'Required')),
+      h('span', { class: 'dots', 'aria-hidden': 'true' }, MAIN.map(k => h('i', { class: `dot k-${k}${s.takes[k] ? ' on' : ''}` }))),
+      h('span', { class: 'pill ' + v.cls }, v.text))));
+  });
+}
+const metric = (l, v) => { const m = /^(-?[\d.,]+)\s(.+)$/.exec(v); return h('div', { class: 'metric' }, h('span', {}, l), m ? h('b', {}, m[1], h('small', {}, ' ' + m[2])) : h('b', {}, v)); };
+function takeCard(s, t, an) {
+  const tk = s.takes[t.k], r = an && an.rows[t.k], err = tk && errCache.get(tk.id), d = state.dur[t.k] || t.dur;
+  const durSel = h('select', { 'aria-label': `${t.name} length`, onchange: e => { state.dur[t.k] = +e.target.value; save(); } }, [10, 20, 30, 40, 60].map(x => h('option', { value: x, selected: x === d }, `${x} s`)));
+  const recBtn = h('button', { type: 'button', class: 'btn rec', disabled: !AE.ctx, onclick: () => doRecord(s, t) }, h('span', { class: 'rec-dot' }), tk ? 'Record again' : 'Record');
+  const imp = h('label', { class: 'btn ghost small file' }, 'Import WAV', h('input', { type: 'file', accept: '.wav,audio/*', onchange: e => { const f = e.target.files[0]; e.target.value = ''; if (f) doImport(s, t, f); } }));
+  let res = null;
+  if (tk) {
+    let body;
+    if (err) body = h('p', { class: 'warn' }, `Could not analyse: ${err}`);
+    else if (t.k === 'sweep') { const q = sweepCache.get(tk.id); body = q ? h('div', { class: 'res' }, metric('Loudest at', `${fmtHz(q.fPeak)} Hz`), metric('Level', `${f1(q.lPeak)} dBFS`), metric('Length', `${(tk.n / tk.fs).toFixed(0)} s`), h('canvas', { class: 'chart mini', 'data-chart': 'sweep', 'data-k': t.k })) : h('p', { class: 'muted' }, 'Analysing…'); }
+    else body = r ? h('div', { class: 'res' }, metric('Level', `${f1(r.tone)} dBFS`), metric('Floor (10 Hz)', `${f1(r.floor)} dBFS`), metric('SNR', Number.isFinite(r.snr) ? `${f1(r.snr)} dB` : 'no tone'), h('canvas', { class: 'chart mini', 'data-chart': 'take', 'data-k': t.k })) : h('p', { class: 'muted' }, 'Analysing…');
+    res = h('div', {}, body, h('div', { class: 'take-links' },
+      h('button', { type: 'button', class: 'link', onclick: async () => { try { download(await takeWavBlob(tk), wavName(s, tk)); } catch (e) { toast(e.message); } } }, 'Download WAV'),
+      h('button', { type: 'button', class: 'link danger', onclick: () => deleteTake(s, t) }, 'Delete')));
+  }
+  return h('article', { class: `take k-${t.k}` },
+    h('div', { class: 'take-h' }, h('span', { class: 'swatch' }), h('div', {}, h('h3', {}, t.name), h('small', {}, t.sub)),
+      tk ? h('span', { class: 'st done' }, `✓ ${timeStr(tk.at)}`) : h('span', { class: 'st todo' }, t.optional ? 'Optional' : 'To do')),
+    h('p', { class: 'how' }, takeHow(t)),
+    h('div', { class: 'take-act' }, recBtn, durSel, imp),
+    !AE.ctx && !tk ? h('small', { class: 'muted' }, micPossible() ? 'Start the microphone above to record.' : 'Recording needs the hosted (https) page.') : null,
+    res);
+}
+function renderSetView() {
+  const box = $('#setView'); box.replaceChildren(); const s = curSet(); if (!s) return;
+  const an = setAnalysis(s), v = verdictOf(s, an), i = state.sets.indexOf(s);
+  let vb;
+  if (an && an.rows.tone) {
+    vb = h('div', { class: 'verdict-box' }, h('div', { class: 'row-h' }, h('h3', {}, 'Verdict'), h('small', { class: 'muted' }, `at ${fmtHz(an.f0)} Hz · ${an.auto ? 'strongest line 17–21 kHz' : 'fixed in bench values'}`)),
+      h('ul', { class: 'checks' }, an.chk.map(c => h('li', {}, h('span', { class: 'ck ' + (c.info ? 'info' : c.ok ? 'ok' : 'no') }, c.info ? 'i' : c.ok ? '✓' : '✕'), h('div', {}, h('b', {}, c.label), h('span', { class: 'd' }, c.detail))))),
+      !an.complete ? h('p', { class: 'muted' }, 'Record all four takes for the full verdict.') : null,
+      h('canvas', { class: 'chart', 'data-chart': 'overlay', style: 'margin-top:10px' }),
+      h('div', { class: 'legend' }, MAIN.filter(k => an.rows[k]).map(k => h('span', { class: 'k-' + k }, h('i', {}), TK[k].name))));
+  } else vb = h('div', { class: 'verdict-box' }, h('h3', {}, 'Verdict'), h('p', { class: 'muted' }, 'Appears once the tone and its checks are recorded. Pass = tone at least 10 dB above off and capacitor, and lower when moved.'));
+  const card = h('section', { class: 'card' },
+    h('div', { class: 'sv-head' }, h('div', {}, h('div', { class: 'eyebrow' }, `Set ${i + 1} of ${state.sets.length}${s.optional ? ' · optional' : ''}`), h('h2', {}, setLabel(s)), h('p', { class: 'muted' }, setHow(s))), h('span', { class: 'pill big ' + v.cls }, v.text)),
+    h('div', { class: 'takes' }, TAKES.map(t => takeCard(s, t, an))), vb,
+    h('div', { class: 'sv-foot' }, h('button', { type: 'button', class: 'btn ghost small danger', onclick: () => deleteSet(s) }, 'Delete this set')));
+  box.append(card); drawSetCharts(card, s, an);
+}
+let resultsTok = 0;
+async function renderResults() {
+  const tok = ++resultsTok; let est = '';
+  try { const e = await navigator.storage.estimate(); if (e && e.usage >= 104858) est =` Using ${(e.usage / 1048576).toFixed(1)} MB.`; } catch (e) {}
+  if (tok !== resultsTok) return;   // a newer call is drawing
+  const ec = $('#exportCard'); ec.replaceChildren();
+  const nTakes = state.sets.reduce((a, s) => a + Object.keys(s.takes).length, 0);
+  ec.append(h('h2', {}, 'Save & export'),
+    h('p', { class: 'muted' }, `Every take and result is saved on this phone as you go (${nTakes} take${nTakes === 1 ? '' : 's'}).${est} Browsers can clear site data, so download a copy after each session.`),
+    h('div', { class: 'exp-btns' },
+      h('button', { type: 'button', class: 'btn primary', disabled: !nTakes, onclick: () => exportZip(false) }, 'Download all (ZIP)'),
+      canShareFiles() ? h('button', { type: 'button', class: 'btn teal', disabled: !nTakes, onclick: () => exportZip(true) }, 'Share ZIP') : null,
+      h('button', { type: 'button', class: 'btn ghost', disabled: !nTakes, onclick: async () => { await ensureAll(); download(new Blob([buildCSV()], { type: 'text/csv' }), `${ymd(Date.now())}_tone-check_${slug(state.device.phone)}.csv`); } }, 'Results only (CSV)')),
+    h('p', { class: 'muted' }, h('small', {}, 'The ZIP holds results.csv, your bench values and notes, and every take as a 16-bit WAV that software/phone_tone_analysis.py can also read.')),
+    h('div', { class: 'exp-btns' }, h('button', { type: 'button', class: 'btn ghost small danger', disabled: !nTakes, onclick: deleteAll }, 'Delete all recordings')));
+  const rl = $('#resultsList'); rl.replaceChildren();
+  const sets = state.sets.filter(s => Object.keys(s.takes).length);
+  if (!sets.length) { rl.append(h('div', { class: 'card muted' }, 'No takes yet. Record them on the Measure tab.')); return; }
+  for (const s of sets) {
+    const an = setAnalysis(s), v = verdictOf(s, an);
+    const rows = TAKES.filter(t => s.takes[t.k]).map(t => {
+      const tk = s.takes[t.k];
+      if (t.k === 'sweep') { const q = sweepCache.get(tk.id); return h('tr', {}, h('td', {}, h('span', { class: 'tdot k-sweep' }), 'Sweep'), h('td', { colspan: '3' }, q ? `loudest at ${fmtHz(q.fPeak)} Hz, ${f1(q.lPeak)} dBFS` : 'analysing…'), h('td', {}, timeStr(tk.at))); }
+      const r = an && an.rows[t.k];
+      return h('tr', {}, h('td', {}, h('span', { class: 'tdot k-' + t.k }), t.name), h('td', {}, r ? f1(r.tone) : '…'), h('td', {}, r ? f1(r.floor) : '…'), h('td', {}, r ? (Number.isFinite(r.snr) ? f1(r.snr) : '—') : '…'), h('td', {}, timeStr(tk.at)));
+    });
+    rl.append(h('div', { class: 'card' },
+      h('div', { class: 'row-h' }, h('h2', {}, `${setLabel(s)} · ${state.bench.source || ''}`), h('span', { class: 'pill ' + v.cls }, v.text)),
+      an ? h('p', { class: 'muted' }, `${state.device.phone || 'This phone'} · analysed at ${fmtHz(an.f0)} Hz`) : null,
+      h('div', { class: 'tablewrap' }, h('table', { class: 'rt' }, h('thead', {}, h('tr', {}, ['Take', 'Level', 'Floor', 'SNR', 'When'].map(x => h('th', {}, x)))), h('tbody', {}, rows))),
+      h('p', { class: 'muted' }, h('small', {}, 'Level and floor in dBFS (floor in a 10 Hz bin), SNR in dB.')),
+      an && an.chk.length ? h('ul', { class: 'checks compact' }, an.chk.map(c => h('li', {}, h('span', { class: 'ck ' + (c.info ? 'info' : c.ok ? 'ok' : 'no') }, c.info ? 'i' : c.ok ? '✓' : '✕'), h('div', {}, h('b', {}, c.label), h('span', { class: 'd' }, c.detail))))) : null));
+  }
+}
+
+/* ===== actions ===== */
+let ovRAF = null, fbuf = null, tbuf = null;
+function openOverlay(s, t) {
+  const o = $('#overlay'), C = 2 * Math.PI * 52, arc = $('#ovArc');
+  o.className = 'overlay k-' + t.k; o.hidden = false;
+  $('#ovKind').textContent = `${setLabel(s)} · ${state.device.phone || 'this phone'}`; $('#ovTitle').textContent = t.name; $('#ovHow').textContent = takeHow(t);
+  arc.style.strokeDasharray = C; arc.style.strokeDashoffset = C;
+  const api = {
+    cancel: null, d: 0,
+    count(n) { $('#ovBig').textContent = n; $('#ovSmall').textContent = 'Hands off · starting'; },
+    rec(d) { api.d = d; $('#ovSmall').textContent = 'Recording'; $('#ovBig').textContent = `${d} s`; },
+    progress(f) { arc.style.strokeDashoffset = C * (1 - f); $('#ovBig').textContent = `${Math.max(0, Math.ceil(api.d * (1 - f)))} s`; },
+    busy() { $('#ovBig').textContent = '…'; $('#ovSmall').textContent = 'Analysing'; $('#ovCancel').disabled = true; },
+  };
+  $('#ovCancel').disabled = false; $('#ovCancel').onclick = () => api.cancel && api.cancel();
+  cancelAnimationFrame(ovRAF); ovLoop(); return api;
+}
+function closeOverlay() { $('#overlay').hidden = true; cancelAnimationFrame(ovRAF); }
+function ovLoop() {
+  if ($('#overlay').hidden || !AE.an) return;
+  const N = AE.an.fftSize, n = AE.an.frequencyBinCount, fs = AE.fs;
+  if (!fbuf || fbuf.length !== n) { fbuf = new Float32Array(n); tbuf = new Float32Array(N); }
+  AE.an.getFloatFrequencyData(fbuf); AE.an.getFloatTimeDomainData(tbuf);
+  const k0 = Math.ceil(17000 * N / fs), k1 = Math.min(n - 1, Math.floor(21000 * N / fs)); let bk = k0;
+  for (let k = k0; k <= k1; k++) if (fbuf[k] > fbuf[bk]) bk = k;
+  let s = 0; for (let i = 0; i < N; i++) s += tbuf[i] * tbuf[i];
+  const rms = 10 * Math.log10(s / N + 1e-20);
+  $('#ovPeak').textContent = `Strongest 17–21 kHz now: ${fmtHz(bk * fs / N)} Hz`;
+  $('#ovMeter').style.width = Math.max(0, Math.min(100, (rms + 90) / 90 * 100)) + '%';
+  ovRAF = requestAnimationFrame(ovLoop);
+}
+async function storeTake(s, t, x, fs, extra) {
+  const pcm = toInt16(x), id = uid();
+  await putAudio(id, { fs, pcm: pcm.buffer });
+  const old = s.takes[t.k];
+  s.takes[t.k] = Object.assign({ id, kind: t.k, at: Date.now(), fs, n: pcm.length }, extra);
+  save();
+  if (old) { try { await delAudio(old.id); } catch (e) {} }
+  try { navigator.storage && navigator.storage.persist && navigator.storage.persist(); } catch (e) {}
+  try { await analyseTake(t.k, id, toF32(pcm), fs); } catch (e) { errCache.set(id, e.message || String(e)); }
+}
+async function doRecord(s, t) {
+  if (!AE.ctx) { toast('Start the microphone first'); return; }
+  if (AE.ctx.state !== 'running') { try { await AE.ctx.resume(); } catch (e) {} }
+  const d = state.dur[t.k] || t.dur, ov = openOverlay(s, t); let cancelled = false;
+  ov.cancel = () => { cancelled = true; if (AE.rec) AE.rec.cancel(); };
+  await keepAwake(true);
+  try {
+    for (let c = 3; c > 0; c--) { ov.count(c); await sleep(1000); if (cancelled) throw new Error('cancelled'); }
+    ov.rec(d);
+    const x = await record(d, f => ov.progress(f));
+    ov.busy();
+    await storeTake(s, t, x, AE.fs, { src: 'mic', mic: AE.label || '', proc: { ec: AE.settings.echoCancellation, ns: AE.settings.noiseSuppression, agc: AE.settings.autoGainControl } });
+    toast(`${t.name} saved`);
+  } catch (e) { toast(e.message === 'cancelled' ? 'Cancelled; nothing saved' : `Recording failed: ${e.message}`); }
+  finally { closeOverlay(); keepAwake(false); render(); }
+}
+async function doImport(s, t, file) {
+  try {
+    toast('Reading the file…');
+    const buf = await file.arrayBuffer(); let a = decodeWav(buf);
+    if (!a) {
+      const Ctx = window.AudioContext || window.webkitAudioContext, c = new Ctx({ sampleRate: 48000 });
+      const ab = await c.decodeAudioData(buf.slice(0)); a = { fs: ab.sampleRate, x: new Float32Array(ab.getChannelData(0)) }; c.close();
+    }
+    if (a.fs < 44100) throw new Error(`sample rate ${a.fs} Hz is too low for 19 kHz`);
+    if (a.x.length < 2 * a.fs) throw new Error('shorter than 2 s');
+    await storeTake(s, t, a.x, a.fs, { src: 'file', file: file.name });
+    toast(`${t.name}: ${file.name} imported`);
+  } catch (e) { toast(`Import failed: ${e.message}`); }
+  render();
+}
+async function deleteTake(s, t) {
+  if (!confirm(`Delete the ${t.name} take of “${setLabel(s)}”? This can’t be undone.`)) return;
+  const old = s.takes[t.k]; delete s.takes[t.k]; save(); if (old) await delAudio(old.id); render();
+}
+async function deleteSet(s) {
+  const n = Object.keys(s.takes).length;
+  if (!confirm(n ? `Delete “${setLabel(s)}” and its ${n} take${n === 1 ? '' : 's'}? This can’t be undone.` : `Remove “${setLabel(s)}” from the list?`)) return;
+  for (const t of Object.values(s.takes)) await delAudio(t.id);
+  state.sets = state.sets.filter(x => x !== s); if (state.current === s.id) state.current = state.sets[0] ? state.sets[0].id : null; save(); render();
+}
+async function deleteAll() {
+  if (!confirm('Delete every recording and result on this phone? Bench values and notes stay. This can’t be undone.')) return;
+  for (const s of state.sets) { for (const t of Object.values(s.takes)) await delAudio(t.id); s.takes = {}; }
+  save(); render(); renderResults(); toast('All recordings deleted');
+}
+
+/* ===== live tab ===== */
+let liveRAF = null, liveF = null, hold = null, range = 'band';
+function startLive() { cancelAnimationFrame(liveRAF); liveLoop(); }
+function liveLoop() {
+  const cv = $('#liveCanvas');
+  if (activeTab !== 'live') return;
+  if (!AE.an) { $('#liveF').textContent = '—'; $('#liveL').textContent = '—'; $('#liveIn').textContent = '—'; $('#liveNote').textContent = 'Start the microphone on the Measure tab to see the live spectrum.'; plot(cv, { fmin: 15000, fmax: 24000, ymin: -160, ymax: -20, series: [] }); return; }
+  $('#liveNote').textContent = 'For looking only; nothing here is saved. Record takes on the Measure tab.';
+  const N = AE.an.fftSize, n = AE.an.frequencyBinCount, fs = AE.fs;
+  if (!fbuf || fbuf.length !== n) { fbuf = new Float32Array(n); tbuf = new Float32Array(N); }
+  if (!liveF || liveF.length !== n) { liveF = new Float64Array(n); for (let k = 0; k < n; k++) liveF[k] = k * fs / N; hold = new Float32Array(n).fill(-300); }
+  AE.an.getFloatFrequencyData(fbuf); AE.an.getFloatTimeDomainData(tbuf);
+  const useHold = $('#holdChk').checked;
+  if (useHold) for (let k = 0; k < n; k++) if (fbuf[k] > hold[k]) hold[k] = fbuf[k];
+  const k0 = Math.ceil(15000 * N / fs), k1 = Math.min(n - 1, Math.floor(24000 * N / fs)); let bk = k0;
+  for (let k = k0; k <= k1; k++) if (fbuf[k] > fbuf[bk]) bk = k;
+  let s = 0, pk = 0; for (let i = 0; i < N; i++) { s += tbuf[i] * tbuf[i]; pk = Math.max(pk, Math.abs(tbuf[i])); }
+  $('#liveF').textContent = `${fmtHz(bk * fs / N)} Hz`; $('#liveL').textContent = `${f1(fbuf[bk])} dB`;
+  $('#liveIn').textContent = `${f1(10 * Math.log10(s / N + 1e-20))} / ${f1(20 * Math.log10(pk + 1e-10))}`;
+  const fmax = range === 'band' ? Math.min(24000, fs / 2) : fs / 2, fmin = range === 'band' ? 15000 : 0;
+  const series = [{ f: liveF, y: fbuf, color: KCOL.tone, w: 1.6 }];
+  if (useHold) series.unshift({ f: liveF, y: hold, color: KCOL.sweep, w: 1.4, alpha: 0.8 });
+  plot(cv, { fmin, fmax, ymin: -160, ymax: -20, series, marker: bk * fs / N });
+  liveRAF = requestAnimationFrame(liveLoop);
+}
+
+/* ===== init ===== */
+function bindUI() {
+  $$('.tabs [role=tab]').forEach(b => b.addEventListener('click', () => {
+    activeTab = b.dataset.tab;
+    $$('.tabs [role=tab]').forEach(x => x.setAttribute('aria-selected', String(x === b)));
+    $$('.tab[id^="tab-"]').forEach(sec => { sec.hidden = sec.id !== 'tab-' + activeTab; });
+    if (activeTab === 'results') renderResults();
+    if (activeTab === 'live') startLive(); else cancelAnimationFrame(liveRAF);
+    window.scrollTo({ top: 0 });
+  }));
+  $$('[data-bind]').forEach(inp => {
+    const [a, b] = inp.dataset.bind.split('.'); inp.value = state[a][b] || '';
+    inp.addEventListener('input', () => { state[a][b] = inp.value; save(); if (['f0', 'freq', 'vpp', 'slab'].includes(b)) scheduleRender(); });
+  });
+  if (!state.bench.discC && !state.device.phone) $('#benchCard').open = true;
+  $$('.seg-ctl button').forEach(b => b.addEventListener('click', () => { range = b.dataset.range; $$('.seg-ctl button').forEach(x => x.classList.toggle('on', x === b)); }));
+  $('#holdClear').addEventListener('click', () => { if (hold) hold.fill(-300); });
+  const dlg = $('#addDlg');
+  $('#addSetBtn').addEventListener('click', () => { if (dlg.showModal) dlg.showModal(); else toast('This browser can’t open the dialog'); });
+  dlg.addEventListener('close', () => {
+    if (dlg.returnValue !== 'add') return;
+    const fd = new FormData(dlg.querySelector('form')), depth = String(num(fd.get('depth')) || 5);
+    const s = mkSet(fd.get('placement'), depth, !!fd.get('optional')); state.sets.push(s); state.current = s.id; save(); render();
+  });
+  window.addEventListener('resize', () => scheduleRender());
+}
+async function init() {
+  await DB.open();
+  let st = null; try { if (DB.ok) st = await DB.get('kv', 'state'); } catch (e) {}
+  state = migrate(st); if (!state.current && state.sets[0]) state.current = state.sets[0].id;
+  if (!DB.ok) saveErr = 'storage unavailable in this browser mode';
+  bindUI(); render();
+}
+window.TC = { welch, lineSNR, autoF0, decodeWav, encodeWav, sweepAnalysis, trimEdges };
+init();
+</script>
+</body>
+</html>
